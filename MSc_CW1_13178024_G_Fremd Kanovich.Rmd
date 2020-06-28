@@ -1,0 +1,500 @@
+---
+title: "BDA Courswork 1"
+
+author: "Guillermo Fremd Kanovich - MSc Data Science - 13178024"
+date: "24 November 2019"
+output: word_document
+
+---
+
+
+## 1. Statistical learning method
+
+**a.** A flexible method would perform worse than an inflexible one, given that it would result in overfitting to the small number of observations.
+
+**b.**A flexible method would perform better, as the large sample would enble a good fitting.
+
+**c.** A flexible method would be better, given that an inflexible method would not be able to capture the non-linear relationship, and would result in underfitting.
+
+**d.** If the standard deviation of the error term is very high, then a flexible statistical learning method would result in overfitting. Therefore, a flexible method would be worse than an inflexible one.**
+
+
+## 2. Bayes’ rule
+Basic rule: P(H|E) = (P(E|H)P(H))/P(E)
+
+Based on the dataset, we can calculate:
+```{r, echo=FALSE}
+ProHot<-12/20
+ProCool<-8/20
+ProPlay<-10/20
+ProNoPlay<-10/20
+
+HotPlay<-5/10
+HotNoPlay<-7/10
+CoolPlay<-5/10
+CoolNoPlay<-3/10
+
+```
+
+P(Temperature = Hot) = 12/20 = 0.6
+
+P(Temperature = Cool) = 8/20 = 0.4
+
+P(Play Golf = yes) = 10/20 = 0.5
+
+P(Play Golf = no) = 10/20 = 0.5
+
+P(Temperature = Hot | Play Golf = yes) = 5/10 = 0.5
+
+P(Temperature = Hot | Play Golf = no) = 7/10 = 0.7
+
+P(Temperature = Cool | Play Golf = yes) = 5/10 = 0.5
+
+P(Temperature = Cool | Play Golf = no) = 3/10 = 0.3
+
+
+```{r, echo=FALSE}
+p1=(HotPlay*ProPlay)/ProHot
+p2=(HotNoPlay*ProNoPlay)/ProHot
+p3=(CoolPlay*ProPlay)/ProCool
+p4=(CoolNoPlay*ProNoPlay)/ProCool
+
+```
+
+**According to the Bayes' rules, we can calculate:**
+
+P((Play Golf=yes|Temp=Hot)=0.416
+
+P((Play Golf=no|Temp=Hot)=0.583
+
+P(Play Golf=yes|Temp=Cool)=0.625
+
+P((Play Golf=no|Temp=Cool)=0.375
+
+
+
+## 3. Descriptive analysis
+```{r, echo=FALSE}
+library (ISLR)
+```
+
+**a.**
+
+**Quantitative predictors**: MPG, Cylinders, Displacement, Horsepower,Weight, Acceleration, Year.
+ 
+**Qualitative predictors**: Name, Origin
+ 
+**b.**
+
+```{r, echo=FALSE}
+range(Auto$mpg)
+range(Auto$cylinders)
+range(Auto$displacement)
+range(Auto$horsepower)
+range(Auto$weight)
+range(Auto$acceleration)
+range(Auto$year)
+```
+ 
+ Range of mpg is: 9.0 - 46.6
+ 
+ Range of Cylinders is:3 - 8
+ 
+ Range of displacement is: 68 - 455
+ 
+ Range of horsepower is: 46 - 230
+ 
+ Range of weight is: 1613 - 5140
+ 
+ Range of accelerations is: 8.0 - 24.8
+ 
+ Range of year is: 70 - 82
+ 
+
+**c.**
+
+**Variance**
+```{r, echo=FALSE}
+options(scipen = 999)
+sapply(Auto[1:7],var)
+
+```
+
+
+**Median**
+```{r, echo=FALSE}
+sapply(Auto[1:7],median)
+
+```
+                
+
+**d.** 
+
+We create a new dataset, without the 11th through 79th observations,  using negative index. 
+```{r}
+newdata=Auto[-c(11:79),]
+
+```
+Then, we calculate variance and median in the same way we did before, this time with the new dataset "newdata".
+
+**Variance**
+```{r, echo=FALSE}
+sapply(newdata[1:7],var)
+```
+
+**Median**
+```{r, echo=FALSE}
+sapply(newdata[1:7],median)
+```
+
+**e.**
+
+```{r, echo=FALSE}
+plot(Auto$weight, Auto$displacement)
+plot(Auto$horsepower, Auto$acceleration)
+plot (Auto$displacement, Auto$mpg)
+boxplot(Auto$weight~Auto$cylinders)
+```
+
+These plots suggest:  
+1- a positive relationship between weight and displacement ,  
+2- a negative relationship between horsepower and acceleration,  
+3- a negative relationship between displacement and mpg,  
+4- a positive relationship between number of cylinders and weight.  
+
+**f.**
+
+```{r, echo=FALSE}
+
+plot(Auto$displacement, Auto$mpg)
+plot(Auto$horsepower, Auto$mpg)
+plot (Auto$weight, Auto$mpg)
+
+```
+  
+These plots suggest that variables displacement, horsepower and weight are useful to predict mpg. The three predictots appear to have a negative, non linear correlation with mpg. 
+
+
+## 4. Linear regression
+
+**a.**
+```{r, echo=FALSE}
+lm.fit=lm(mpg~horsepower, data=Auto)
+summary(lm.fit)
+```
+
+The least squares equation obtained is
+mpg = -0.157 ∗ horsepower + 39.936
+ 
+**i.** Yes. Given that the t-value is large, and the p-value is small, we can reject the null hypothesis and confirm that a linear relationship does exist between the variables.
+
+**ii.**  The Adjusted R-square indicates that the variable Horsepower can explain 60% of the variation in MPG
+
+**iii.** It is a negative relationship, which means that as the horsepower increases, the MPG decreses.In fact, as indicated by the equation presented above, each increase of 1 in horsepower leads to a decrese of 0.157 in MPG.
+
+**iv.**
+```{r, echo=FALSE}
+predict(lm.fit, newdata = data.frame(horsepower = 89))
+predict(lm.fit, data.frame(horsepower=89), interval="confidence", level=0.99)
+predict(lm.fit, data.frame(horsepower=89), interval="prediction", level=0.99)
+
+
+```
+The predicted mpg value associated with a horsepower of 89 is 25.888.  
+The associated 99% conﬁdence intervals are 25.196 and 26.579.  
+The associated 99% prediction intervals are 13.170 and 38.605.  
+
+**b & c.**  
+
+```{r, echo=FALSE}
+plot (Auto$horsepower,Auto$mpg,
+      main = "Confidence intervals and prediction intervals",
+      xlab="Horsepower",ylab="MPG",ylim=c(-5,47), xlim=c(43,230))
+abline(lm.fit, col="blue")
+nd=data.frame(horsepower=seq(43,230, length=100))
+confi=predict(lm.fit, nd, interval="confidence")
+predi=predict(lm.fit, nd, interval="prediction")
+lines(nd$horsepower, confi[,"lwr"], col="red", type="b", pch="+")
+lines(nd$horsepower, confi[,"upr"], col="red", type="b", pch="+")
+lines(nd$horsepower, predi[,"upr"], col="green", type="b", pch="*")
+lines(nd$horsepower, predi[,"lwr"], col="green", type="b", pch="*")
+legend("bottomleft",
+pch=c("-","+","*"),
+col=c("blue","red","green"),
+legend = c("regression line","confidence","prediction"))
+```
+
+## 5. Logistic regression
+**a.**
+```{r, echo=FALSE}
+traindata <- read.table("Training_set for Q5.txt", header = TRUE, sep = ",")
+
+testdata <- read.table("Testing_set for Q5.txt", header = TRUE, sep = ",")
+```
+
+**Median**
+```{r, echo=FALSE}
+sapply(traindata,median)
+```
+**Mean**
+```{r, echo=FALSE}
+sapply(traindata,mean)
+```
+**Standard Deviation**
+```{r, echo=FALSE}
+sapply(traindata,sd)
+```
+**Range**
+```{r, echo=FALSE}
+lapply(traindata,range)
+```
+**b.**
+```{r, echo=FALSE}
+occutemp.fit <- glm(Occupancy ~ Temperature, 
+                     data = traindata, 
+                     family = "binomial"
+                     )
+
+occutemp.prob <- predict(occutemp.fit,newdata=testdata, type="response")
+
+
+predictoccutemp = rep(1,(nrow(testdata)))
+
+predictoccutemp[occutemp.prob<0.5] <- 0
+```
+
+```{r}
+
+table(Prediction=predictoccutemp, Truth=testdata$Occupancy)
+mean(predictoccutemp == testdata$Occupancy)
+
+
+```
+
+This model correctly predicted the occupacy 67.7% of the time.
+
+**c.**
+
+```{r, echo=FALSE}
+occuhum.fit <- glm(Occupancy ~ Humidity, 
+                     data = traindata, 
+                     family = "binomial"
+                     )
+
+occuhum.prob <- predict(occuhum.fit,newdata=testdata, type="response")
+
+
+predictoccuhum = rep(1,(nrow(testdata)))
+
+predictoccuhum[occuhum.prob<0.5] <- 0
+```
+
+```{r}
+
+table(Prediction=predictoccuhum, Truth=testdata$Occupancy)
+mean(predictoccuhum == testdata$Occupancy)
+
+
+
+```
+
+This model correctly predicted the occupacy 57% of the time.
+
+**d.**
+
+```{r, echo=FALSE}
+occuall.fit <- glm(Occupancy ~ Temperature + Humidity + Light + CO2 +HumidityRatio , 
+                     data = traindata, 
+                     family = "binomial"
+                     )
+
+occuall.prob <- predict(occuall.fit,newdata=testdata, type="response")
+
+
+predictoccuall = rep(1,(nrow(testdata)))
+
+predictoccuall[occuall.prob<0.5] <- 0
+
+```
+
+```{r}
+
+table(Prediction=predictoccuall, Truth= testdata$Occupancy)
+mean(predictoccuall == testdata$Occupancy)
+
+```
+This model correctly predicted the occupacy 77% of the time.
+
+
+**e.**
+```{r, echo=FALSE}
+library(ROCR)
+library(gplots)
+prediction1 <- prediction(occutemp.prob, testdata$Occupancy)
+auroc_prediction1 <- performance(prediction1, measure = "auc")
+auroc_prediction1_value <- auroc_prediction1@y.values[[1]]
+print(paste("The AUROC value of the trained logistic regression model presented in question b (the one using the variable Temperature) is ",
+auroc_prediction1_value,"."))
+
+prediction2 <- prediction(occuhum.prob, testdata$Occupancy)
+auroc_prediction2 <- performance(prediction2, measure = "auc")
+auroc_prediction2_value <- auroc_prediction2@y.values[[1]]
+print(paste("The AUROC value of the trained logistic regression model presented in question C (the one using the variable Humidity) is ",
+auroc_prediction2_value,"."))
+
+prediction3 <- prediction(occuall.prob, testdata$Occupancy)
+auroc_prediction3 <- performance(prediction3, measure = "auc")
+auroc_prediction3_value <- auroc_prediction3@y.values[[1]]
+print(paste("The AUROC value of the trained logistic regression model presented in question D (the one using all variables) is ",
+auroc_prediction3_value,"."))
+```
+
+```{r, echo=FALSE}
+
+
+plotprediction1 <- performance(prediction1, measure = "tpr", x.measure = "fpr")
+plot(plotprediction1, col="blue")
+legend(0.4,0.5,
+c(text=sprintf("AUROC model 1 = %s",
+round(auroc_prediction1_value, digits=3))),
+lty=1, cex=0.9, bty="n", col = c("blue"),
+y.intersp=1, inset=c(0.1,-0.15))
+abline(a = 0, b = 1)
+
+
+plotprediction2 <- performance(prediction2, measure = "tpr", x.measure = "fpr")
+plot(plotprediction2, col="red", add=TRUE)
+legend(0.4,0.3,
+c(text=sprintf("AUROC model 2 = %s",
+round(auroc_prediction2_value, digits=3))),
+lty=1, cex=0.9, bty="n", col = c("red"),
+y.intersp=1, inset=c(0.1,-0.15))
+abline(a = 0, b = 1)
+
+
+plotprediction3 <- performance(prediction3, measure = "tpr", x.measure = "fpr")
+plot(plotprediction3, col="green", add=TRUE)
+legend(0.4,0.1,
+c(text=sprintf("AUROC model 3 = %s",
+round(auroc_prediction3_value, digits=3))),
+lty=1, cex=0.9, bty="n", col = c("green"),
+y.intersp=1, inset=c(0.1,-0.15))
+abline(a = 0, b = 1)
+```
+
+The Auroc values identified are consistent with the predictions of the three models, confirming that a logistic regression using variable Temperature is a better predictor than one using the variable Humidity, and that one using both Humidity and Temperature is even better. This is also clearly shown in the plotted AUROCs, as the green line (the one for the model using both Humidity and Temperature as predictors) is the one that has more area under it.
+
+
+
+## 6. Resampling method
+**a.** The model that learns parameteres for a polynomial of degree  4 (Model B) will probably fit better the test data. While it is likely that the parameter for x^4 will be very low (close or equal to zero), the model will be able to show the parameter for x^3. In turn, the model that learns parameters for a polynomial of only degree 2, will not estmate the parameter for x^3.
+ 
+
+**b.**
+
+```{r, echo=FALSE}
+set.seed(235) 
+x = 12 + rnorm(400) 
+y = 1 - x + 4*x^2 - 5*x^3 + rnorm(400)
+plot(x,y)
+
+```
+  
+The plot shows there is a negative correlation between X and Y: as x becomes larger, Y diminishes. Also, while y was computed using a polinomial function of degree 3,  the shape of the plot resembles very much a linear regression. 
+Also, the noice added appears to be relatively small given that, at first sight, there are no random irregularities in the shape of the plot, and therefore it shows that the vast majority of the variance of Y is explained by X.
+
+```{r, echo=FALSE}
+data6=data.frame(x,y)
+library(boot)
+data6degree2=glm(y ~ poly(x,2), data=data6)
+data6degree4=glm(y ~ poly(x,4), data=data6)
+set.seed(34) 
+
+
+cv.errordegree2 <- cv.glm(data6,data6degree2)
+
+cv.errordegree4 <- cv.glm(data6,data6degree4)
+
+print(paste("The LOOCV error that results from the model of degree 2 is ", cv.errordegree2$delta[1]))
+
+print(paste("The LOOCV error that results from the model of degree 4 is ", cv.errordegree4$delta[1]))
+```
+```{r, echo=FALSE}
+cv.errordegree2k10 <- cv.glm(data6,data6degree2,K=10)
+
+cv.errordegree4k10<- cv.glm(data6,data6degree4, K=10)
+
+print(paste("The 10-fold CV error that results from the model of degree 2 is ", cv.errordegree2k10$delta[1]))
+
+print(paste("The 10-fold CV error that results from the model of degree 4 is ", cv.errordegree4k10$delta[1]))
+
+```
+
+**d.**
+```{r,echo=FALSE}
+set.seed(68)
+second.cv.errordegree2 <- cv.glm(data6,data6degree2)
+second.cv.errordegree4 <- cv.glm(data6,data6degree4)
+
+print(paste("The new LOOCV error that results from the model of degree 2 is ", second.cv.errordegree2$delta[1]))
+
+print(paste("The new LOOCV error that results from the model of degree 4 is ", second.cv.errordegree4$delta[1]))
+```
+
+```{r,echo=FALSE}
+set.seed(68)
+second.cv.errordegree2k10 <- cv.glm(data6,data6degree2,K=10)
+
+second.cv.errordegree4k10<- cv.glm(data6,data6degree4, K=10)
+
+print(paste("The new 10-fold CV error that results from the model of degree 2 is ", second.cv.errordegree2k10$delta[1]))
+
+print(paste("The new 10-fold CV error that results from the model of degree 4 is ", second.cv.errordegree4k10$delta[1]))
+```
+
+While the LOOCV error did not change when changing the seed, the 10-fold CV ones did change. The LOOCV does not change because in this method the data is split based on 1 observation each time, without any randomness in the splitting process.In turn, the K-fold CV is a randomised function, that divides the data in k different parts (in this case, 10). THerefore, when we change the seed the division of the data in k parts changes as well, and as a result we obtain different CV errors.
+
+**e.**
+When using both seeds the error of the model of degree 2 was larger than the error of degree 4. This confirms what I said in question a. That is, that data generated from a polynomial of degree 3 would be better fit by a model that learns parameteres for a polynomial of degree  4 than one of degree 2.
+
+**f.**
+```{r, echo=FALSE}
+options(scipen = 999)
+
+summary(data6degree4)
+
+```
+The equation obtained is
+y = -8406.2 - 42067.2*x - 4659*x^2 - 191.4*x^3   
+
+The intercept and the coeficients for degree 1,2 and 3 are statisitcally significant (p<0.001), while the one of degree 4 is not, with its o value being almost 1, (and its t-value being almost 0). This is consistent, given that the function was created with a polynomial of degree 3, not 4.
+
+**f.**
+```{r, echo=FALSE}
+
+data6degree3=glm(y ~ poly(x,3), data=data6)
+
+summary(data6degree3)
+
+```
+The equation obtained for the cubic model is *(almost)* identical to the one we had obtained for the model of degree 4: 
+
+y = -8406.2 - 42067.2*x - 4659*x^2 - 191.4*x^3
+
+(It is *almost* identical because if we did not round up the coeficients, there would be very minimal differences between them. These differences are extremelly small and are not significant)
+
+The intercept and the coeficients for degrees 1,2 and 3 are statisitcally significant (p<0.001).
+
+```{r, echo=FALSE}
+set.seed(34)
+cv.errordegree3 <- cv.glm(data6,data6degree3)
+cv.errordegree3k10 <- cv.glm(data6,data6degree3,K=10)
+
+print(paste("The LOOCV error that results from the model of degree 3 is ", cv.errordegree3$delta[1]))
+
+print(paste("The 10-fold CV error that results from the model of degree 3 is ", cv.errordegree3k10$delta[1]))
+
+
+```
+The  LOOCV error that had resulted from the model of degree 4 was 1.01796595335468, and (using the same seed, 34) the 10-fold CV error was 1.02090025445877. Therefore, both the 10-fold and the LOOCV errors of the model of degree 3 is slightly smaller, which indicates it is a better model. However, the differences are minimal.
+

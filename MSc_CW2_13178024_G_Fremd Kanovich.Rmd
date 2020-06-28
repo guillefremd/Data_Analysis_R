@@ -1,0 +1,443 @@
+---
+title: "BDA Courswork 2"
+
+author: "Guillermo Fremd Kanovich - MSc Data Science - 13178024"
+date: "12 January 2020"
+output: word_document
+
+---
+
+
+## 1. Bayesian Networks and Naïve Bayes Classifiers
+
+**a.** 
+
+  
+![Alt text](C:\Users\Guillermo Fremd\Documents\MSc\First Semester\BDAwR\Coursework 2\Bayesian.JPG)
+  
+P(Buy computer=yes)=14/30 (0.47)
+
+P(Buy computer=no)=16/30 (0.53)
+
+**b.** 
+
+P(Buy computer=yes)=14/30 (0.47)
+
+P(Buy computer=no)=16/30 (0.53)
+
+-INSTANCE_31
+
+P(Buy computer = yes,Income = low, Student = false, Credit Rating = Excellent) = 0.47 x 0.64 x 0.5 x 0.5 = 0.075
+
+P(Buy computer = no,Income = low, Student = false, Credit Rating = Excellent)= 0.63 x 0.56 x 0.31 x 0.5+ 0.055
+
+The P that instance 31 will buy is larger than that it will not buy. Therefore, I predict it will buy (Buy computer = yes).
+
+-INSTANCE_32
+
+P(Buy computer = yes,Income = High, Student = false, Credit Rating = fair)=0.47 x 0.36 x 0.5 x 0.33= 0.028
+
+P(Buy computer = no,Income = High, Student = false, Credit Rating = fair)=0.53 x 0.44 x 0.31 x 0.33= 0.024
+
+The P that instance 32 will buy is larger than that it will not buy. Therefore, I predict it will buy (Buy computer = yes).
+
+**c.**
+
+
+![Alt text](C:\Users\Guillermo Fremd\Documents\MSc\First Semester\BDAwR\Coursework 2\Bayesian2.JPG)
+  
+  
+**d.** 
+
+INSTANCE_31
+
+P(Buy computer = yes,Income = low, Student = false, Credit Rating = Excellent) = 0.47 x 0.64 x 0.5 x 0.5 = 0.075
+
+P(Buy computer = no,Income = low, Student = false, Credit Rating = Excellent)= 0.63 x 0.56 x 0.31 x 0.44= 0.048
+
+Also with the independence assumption, the P that instance 31 will buy is larger than that it will not buy. Therefore, I again predict it will buy (Buy computer = yes)
+
+INSTANCE_32
+
+P(Buy computer = yes,Income = High, Student = false, Credit Rating = fair)=0.47 x 0.36 x 0.5 x 0.5= 0.042
+
+P(Buy computer = no,Income = High, Student = false, Credit Rating = fair)=0.53 x 0.44 x 0.31 x 0.56= 0.040
+
+With the independence assumption between features, the probability that instance 32 will buy is larger than that it will not buy. Therefore, I predict it will buy (Buy computer = yes).
+
+
+
+## 2. Decision Trees and Random Forests
+**a.** 
+```{r, echo=FALSE}
+library("tree")
+traindata <- read.table("RoomOccupancy_Training.txt", header = TRUE, sep = ",")
+
+testdata <- read.table("RoomOccupancy_Testing.txt", header = TRUE, sep = ",")
+
+
+tree.room <- tree(Occupancy~., traindata)
+
+
+tree.predict <- predict(tree.room, testdata, type="class")
+real.occu.testdata=testdata$Occupancy
+table(Prediction=tree.predict, Truth=real.occu.testdata)
+mean(tree.predict == testdata$Occupancy)
+mean(tree.predict != testdata$Occupancy)
+
+```
+The accuracy obtained on the testing dataset was 79.7%; the Test Error Rate was 20.3%
+
+
+**b.**
+```{r}
+plot(tree.room)
+text(tree.room, pretty=0, cex=0.7)
+summary(tree.room)
+tree.room
+```
+-The variables that were used in the tree were Light, Temperature, CO2, Humidity
+
+-According to the obtained three, for all instances with Light value less than 162,875, Occupancy is classified as No.
+
+-In turn, for those cases whose Light value is above such threshold, the coming step is Temperature: if it is below 22.2113, then Occupancy it is classified as Y. But, if Temperature is not below 22.2113, the coming variable to consider is C02; 
+
+-If C02 is below 893.125, the the classification will depend in Humidity: if Humidity is below 26.695, then Occupany is No, otherwise Occupancy is YES.
+
+-In turn, if If C02 is above 893.125, then it will depend in Temperature: if Temperature is below 22.6417, then Occupany is Yes. Otherwise, occupancy is No.
+
+
+**C.**
+
+
+```{r}
+
+library(randomForest)
+set.seed(10)
+forest.room <- randomForest(Occupancy~., traindata, mtry=3, importance=TRUE)
+print(forest.room)
+
+forest.predict <- predict(forest.room, testdata, type="class")
+real.occu.testdata=testdata$Occupancy
+table(Prediction=forest.predict, Truth=real.occu.testdata)
+mean(forest.predict == testdata$Occupancy)
+mean(forest.predict != testdata$Occupancy)
+
+```
+The accuracy of the random forests classifier on the testing dataset was 73%; the Test Error Rate was 27%. In this case, the random forest classifier did not present a better accuract than the tree, as its accuracy  was 79.7%.
+
+**d.**
+
+```{r}
+
+varImpPlot(forest.room)
+
+```
+
+In terms of the calculated Mean Decrease in Accuracy, the most important variable is light, followed by, Temperature, CO2, HumidityRatio and Humidity, in that order.
+
+While in terms of the Mean Decrease in Gini the most important variable is also light, it is followed by CO2, Temperature, Humidity and Humidity ratio, in that order.
+
+
+## 3. SVM
+**(a)** Download the wine quality data and use the training dataset to conduct the grid-search to find the
+optimal hyperparameters of svm by using the linear kernal.
+
+
+```{r}
+trainwine <- read.table("WineQuality_training.txt", header = TRUE, sep = ",")
+
+testwine <- read.table("WineQuality_testing.txt", header = TRUE, sep = ",")
+
+
+library(e1071)
+set.seed(1)
+tunewine <- tune(svm, quality ~ .,data=trainwine,kernel="linear",ranges= list(cost=c(0.01,0.1,1,5,10), gamma=c(0.01,0.03,0.1,0.5,1)))
+summary(tunewine)
+
+
+```
+ The tune funtion reveals that, using the linear kernal, the optimal hyperparameters are cost 1 and gamma 0.01
+
+**(b)** Train a svm classifier by using the linear kernal and the corresponding optimal hyperparameters, then
+make predictions on the testing dataset, report the predictive performance.
+
+
+```{r}
+
+set.seed(1)
+svm.wine <- svm(quality ~ .,data=trainwine,kernel="linear", cost=1, gamma=0.01, probability = TRUE)
+
+
+svm.predict <- predict(svm.wine, testwine, type="class", probability=TRUE, decision.values=TRUE)
+
+real.quality.testdata=testwine$quality
+table(Prediction=svm.predict, Truth=real.quality.testdata)
+mean(svm.predict == real.quality.testdata)
+mean(svm.predict != real.quality.testdata)
+
+
+```
+
+The test error rate is 31.75%; the acquracy is 68.25%
+
+
+**(c)** Conduct the grid-search to find the optimal hyperparameters of svm by using the RBF kernal.
+```{r}
+set.seed(1)
+tunewine.RBF <- tune(svm, quality ~ .,data=trainwine,kernel="radial",ranges= list(cost=c(0.01,0.1,1,5,10), gamma=c(0.01,0.03,0.1,0.5,1)))
+summary(tunewine.RBF)
+```
+
+ The tune funtion reveals that, using the radial kernal, the optimal hyperparameters are cost 5 and gamma 1
+
+
+**(d)**
+Train a svm classifier by using the RBF kernal and the corresponding optimal hyperparameters, then
+make predictions on the testing dataset, report the predictive performance.
+```{r}
+set.seed(1)
+RBF.wine <- svm(quality ~ .,data=trainwine,kernel="radial", cost=5, gamma=1, probability = TRUE)
+
+
+RBF.predict <- predict(RBF.wine, testwine, type="class", probability=TRUE, decision.values=TRUE)
+
+real.quality.testdata=testwine$quality
+table(Prediction=RBF.predict, Truth=real.quality.testdata)
+mean(RBF.predict == real.quality.testdata)
+mean(RBF.predict != real.quality.testdata)
+
+
+```
+The test error rate is 36%; the acquracy is 64%
+
+**(e)**Conduct the ROC curve analysis to compare the predictive performance of svm classifiers trained by
+using the linear and RBF kernels respectively
+
+
+
+
+```{r}
+library(ROCR)
+library(gplots)
+prob.good1 <- attr (svm.predict, "probabilities")[, "Good"]
+
+
+prediction1 <- prediction(prob.good1, testwine$quality)
+auroc_prediction1 <- performance(prediction1, measure = "auc")
+auroc_prediction1_value <- auroc_prediction1@y.values[[1]]
+print(paste("The AUROC value of the SVM presented in question b (the one using the linear kernal) is ",
+auroc_prediction1_value,"."))
+
+prob.good2 <- attr (RBF.predict, "probabilities")[, "Good"]
+
+prediction2 <- prediction(prob.good2, testwine$quality)
+auroc_prediction2 <- performance(prediction2, measure = "auc")
+auroc_prediction2_value <- auroc_prediction2@y.values[[1]]
+print(paste("The AUROC value of the SVM presented in question d (the one using the RBF kernal) is ",
+auroc_prediction2_value,"."))
+
+
+plotprediction1 <- performance(prediction1, measure = "tpr", x.measure = "fpr")
+plot(plotprediction1, col="blue")
+legend(0.3,0.3,
+c(text=sprintf("AUROC SVM linear kernal = %s",
+round(auroc_prediction1_value, digits=3))),
+lty=1, cex=0.7, bty="n", col = c("blue"),
+y.intersp=1, inset=c(0.1,-0.15))
+abline(a = 0, b = 1)
+
+
+plotprediction2 <- performance(prediction2, measure = "tpr", x.measure = "fpr")
+plot(plotprediction2, col="red", add=TRUE)
+legend(0.3,0.1,
+c(text=sprintf("AUROC SVM RBF kernal = %s",
+round(auroc_prediction2_value, digits=3))),
+lty=1, cex=0.7, bty="n", col = c("red"),
+y.intersp=1, inset=c(0.1,-0.15))
+abline(a = 0, b = 1)
+
+```
+
+## 4. Hierarchical Clustering
+
+**(a)** Using hierarchical clustering with complete linkage and Euclidean distance, cluster the states.
+
+```{r}
+#install.packages("datasets")
+library(datasets)
+cluster <- hclust(dist(USArrests),method="complete")
+plot(cluster)
+```
+
+**(b)** Cut the dendrogram at a height that results in three distinct clusters. Which states belong to which
+clusters?
+```{r}
+cut.den=cutree(cluster,3)
+sort(cut.den)
+#mm <- unlist(cut.den); 
+#sort(mm,decreasing=FALSE)
+```
+
+**(c)** Hierarchically cluster the states using complete linkage and Euclidean distance, after scaling the variables
+to have standard deviation one.
+```{r}
+scaled.data <- scale(USArrests)
+scaled.cluster <- hclust(dist(scaled.data),method="complete")
+plot(scaled.cluster)
+
+
+```
+```{r}
+cut.den.scaled=cutree(scaled.cluster,3)
+sort(cut.den.scaled)
+
+```
+
+
+
+**(d)** What effect does scaling the variables have on the hierarchical clustering obtained? In your opinion,
+should the variables be scaled before the inter-observation dissimilarities are computed?
+
+THe hierarchcical clusterings I computed use Euclidean distance to calculate the similarity among the different cities. However, not all the variables in the dataset USArrests are measured in the same unite and have very different ranges. For example, the varibles Murder, Assault and Rape indicate the number of arrests per 100,000 inhabitants, but have very different ranges and means:
+
+```{r}
+summary (USArrests)
+```
+
+-Murder: range between 0.8 and 17.4, with a mean of 7.8
+
+-Assault: range between 45.0 and 337.0, with a mean of 170.8, and
+
+-Rape: range between 7.3 and 46.0, with a mean of 21.23 
+
+As a result, when measuring the Euclidean distance is much more affected by the variable assault (given its significantly larger magnitude) than by Rape, and Murder has the smallest weight. Also, the variable UrbanPop is not a measure per 100,000 inhabitantes, but indicares the percentage of urban population, with a range between 32.0 and 91, and a mean of 65.5
+
+Once we scale the data, all variables have mean zero and standard deviation 1, therefore, the four variables weight in equally when measuring the distance and, as a result, have the same weight in the hierarchical cluster we then obtain.
+
+
+```{r}
+summary(scale(USArrests))
+
+```
+
+This explains the differences that we see in the clustering before and after scaling the variables. In my opinion, the variables should be scaled before the inter-observation dissimilarities are computed, in order to make sure none of the variables has an extreme effect in the calculated distances, while other variables have a very small effect.
+
+## 5.PCA and K-Means Clustering
+
+**(a)** Generate a simulated data set with 20 observations in each of three classes (i.e. 60 observations total),
+and 50 variables.
+
+```{r}
+set.seed(10)
+simu.data <- rbind(matrix(rnorm(1000, mean = 1.5), nrow = 20),
+matrix(rnorm(1000, mean=0.5), nrow = 20),
+matrix(rnorm(1000, mean=-1), nrow = 20))
+
+```
+
+**(b)** Perform PCA on the 60 observations and plot the first two principal components’ eigenvector. Use
+a different color to indicate the observations in each of the three classes.
+
+```{r}
+pca = prcomp(simu.data, scale=FALSE)
+biplot(pca, scale = FALSE)
+
+print(paste("The plot printed below is the same as above, with different colours for the three classes"))
+
+a=pca$x
+plot(a[,1:2], col=c(rep("darkgreen",20), rep("blue3",20), rep("darkred",20)))
+
+
+
+```
+
+**(c)** Perform K-means clustering of the observations with K = 3. How well do the clusters that you obtained
+in K-means clustering compare to the true class labels?
+
+
+
+```{r}
+set.seed(5)
+km <- kmeans(simu.data,3,nstart=20)
+km$cluster
+real = c(rep(1,20), rep(2,20), rep(3,20))
+table(km$cluster, real)
+
+```
+
+All the observations perfectly clustered
+
+**(d)** Perform K-means clustering with K = 2. Describe your results.
+
+```{r}
+set.seed(5)
+km.2 <- kmeans(simu.data,2,nstart=20)
+km.2$cluster
+real = c(rep(1,20), rep(2,20), rep(3,20))
+table(km.2$cluster, real)
+
+```
+
+As expected, we obtain only two clusters, cluster 1 and cluster 2.
+The details presented above shows clearly that observations 41 to 60 were correctly clustered in one independent cluster, and that that observations 1 to 40 were clustered together, as one big cluster, comprising 40 observations.
+
+
+
+**(d)** Now perform K-means clustering with K = 4, and describe your results.
+```{r}
+set.seed(5)
+km.4 <- kmeans(simu.data,4,nstart=20)
+km.4$cluster
+real = c(rep(1,20), rep(2,20), rep(3,20))
+table(km.4$cluster, real)
+
+```
+
+n this case, 4 clusters were created. Observations 1 to 20, as well as observations 41 to 60 were correctly clustered in two clusters, coherent with the real clusters. In turn, observations 21 to 40 were divided in two groups, with 16 observations being clustered on one side, and 4 other observations being clustered in a fourth cluster.
+
+
+
+**(f)**Now perform K-means clustering with K = 3 on the first two principal components, rather than on the
+raw data. That is, perform K-means clustering on the 60 × 2 matrix of which the first column is the
+first principal component’s corresponding eigenvector, and the second column is the second principal
+component’s corresponding eigenvector. Comment on the results.
+
+
+```{r}
+new.dat=pca$x[,0:2]
+new.dat
+set.seed(5)
+km.pca <- kmeans(new.dat,3,nstart=20)
+km.pca$cluster
+real = c(rep(1,20), rep(2,20), rep(3,20))
+table(km.pca$cluster, real)
+
+
+```
+
+Using just the two principal components, the clustering was also perfect, with all 3 classes being perfectly clustered, i.e., observations 1-20 together, observations 21-40 together, and observations 41-60 together.
+
+
+**(g)** Using the scale() function, perform K-means clustering with K = 3 on the data after scaling each
+variable to have standard deviation one. How do these results compare to the true class labels? Will
+the scaling affect the clustering?
+
+```{r}
+
+set.seed(5)
+simu.scaled=scale(simu.data)
+km.scaled <- kmeans(simu.scaled,3,nstart=20)
+km.scaled$cluster
+real = c(rep(1,20), rep(2,20), rep(3,20))
+table(km.scaled$cluster, real)
+
+
+```
+
+In this case, scaling the variables did not let to any change in the clustering, and again the observations were correctly labeled. It should be noted that when generating the simulated data in part a, I used rnorm, modifing the means, but not changing the standard devitation (by default it is 1). Therefore, given that the standard deviation of all variables was the same, none of them had a more important weight in the K-means clustering, and therefore the scaling did not have a signficant impact.
+
+
+
+
+
